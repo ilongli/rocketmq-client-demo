@@ -1,5 +1,6 @@
-package com.ilongli.rocketmqclientdemo;
+package com.ilongli.rocketmqclientdemo.transaction;
 
+import com.ilongli.rocketmqclientdemo.Constants;
 import org.apache.rocketmq.client.apis.ClientConfiguration;
 import org.apache.rocketmq.client.apis.ClientException;
 import org.apache.rocketmq.client.apis.ClientServiceProvider;
@@ -11,12 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-public class PushConsumerExample {
-    private static final Logger logger = LoggerFactory.getLogger(PushConsumerExample.class);
+public class TransactionPushConsumerExample {
+    private static final Logger logger = LoggerFactory.getLogger(TransactionPushConsumerExample.class);
 
-    private PushConsumerExample() {
+    private TransactionPushConsumerExample() {
     }
 
     public static void main(String[] args) throws ClientException, IOException, InterruptedException {
@@ -28,9 +31,9 @@ public class PushConsumerExample {
         String tag = "*";
         FilterExpression filterExpression = new FilterExpression(tag, FilterExpressionType.TAG);
         // 为消费者指定所属的消费者分组，Group需要提前创建。
-        String consumerGroup = "YourConsumerGroup";
+        String consumerGroup = "TransactionConsumerGroup";
         // 指定需要订阅哪个目标Topic，Topic需要提前创建。
-        String topic = "TestTopic";
+        String topic = "TransactionTopic";
         // 初始化PushConsumer，需要绑定消费者分组ConsumerGroup、通信参数以及订阅关系。
         PushConsumer pushConsumer = provider.newPushConsumerBuilder()
             .setClientConfiguration(clientConfiguration)
@@ -41,8 +44,15 @@ public class PushConsumerExample {
             // 设置消费监听器。
             .setMessageListener(messageView -> {
                 // 处理消息并返回消费结果。
-                logger.info("Consume message successfully, messageId={}", messageView.getMessageId());
-                return ConsumeResult.SUCCESS;
+                try {
+                    ByteBuffer body = messageView.getBody();
+                    String str = StandardCharsets.UTF_8.decode(body).toString();
+                    logger.info("Consume message successfully, messageBody={} messageId={}", str, messageView.getMessageId());
+                    return ConsumeResult.SUCCESS;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return ConsumeResult.FAILURE;
+                }
             })
             .build();
         Thread.sleep(Long.MAX_VALUE);

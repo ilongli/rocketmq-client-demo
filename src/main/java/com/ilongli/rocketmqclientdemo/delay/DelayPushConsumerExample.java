@@ -1,5 +1,6 @@
 package com.ilongli.rocketmqclientdemo.delay;
 
+import com.ilongli.rocketmqclientdemo.Constants;
 import org.apache.rocketmq.client.apis.ClientConfiguration;
 import org.apache.rocketmq.client.apis.ClientException;
 import org.apache.rocketmq.client.apis.ClientServiceProvider;
@@ -21,10 +22,8 @@ public class DelayPushConsumerExample {
 
     public static void main(String[] args) throws ClientException, IOException, InterruptedException {
         final ClientServiceProvider provider = ClientServiceProvider.loadService();
-        // 接入点地址，需要设置成Proxy的地址和端口列表，一般是xxx:8081;xxx:8081。
-        String endpoints = "localhost:8081";
         ClientConfiguration clientConfiguration = ClientConfiguration.newBuilder()
-            .setEndpoints(endpoints)
+            .setEndpoints(Constants.endpoint)
             .build();
         // 订阅消息的过滤规则，表示订阅所有Tag的消息。
         String tag = "*";
